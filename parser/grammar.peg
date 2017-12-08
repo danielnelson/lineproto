@@ -1,0 +1,133 @@
+{
+	package lineproto
+}
+
+// fixme? could return only a comment or blankline
+Grammar
+  = Line+ EOF
+
+Line = Point / Comment / BlankLine
+
+Point
+  = Measurement Tag* __ Fields TimeStamp? EOL+
+
+Comment
+  = __ "#" (!EOL SourceChar)* EOL+
+
+BlankLine
+  = __ EOL+
+
+// fixme: can't start with "#", but it's faster to keep ordering in Grammar rule
+Measurement
+  = MeasurementChar+
+
+MeasurementChar
+  = MeasurementSourceChar / Escape SourceChar
+
+MeasurementSourceChar
+  = [^ ,\\]
+MeasurementSourceChar
+  = [^ ,\\]
+
+Tag
+  = ',' TagKey '=' TagValue
+
+TagKey
+  = TagChar+
+
+TagValue
+  = TagChar+
+
+TagChar
+  = TagSourceChar / Escape SourceChar
+
+TagSourceChar
+  = [^ ,=\\]
+
+Fields
+  = Field ( "," Field )*
+
+Field
+  = FieldKey "=" FieldValue
+
+FieldKey
+  = FieldChar+
+
+FieldChar
+  = FieldSourceChar / Escape SourceChar
+
+FieldSourceChar
+  = [^ ,=\\]
+
+FieldValue
+  = FieldInteger / FieldFloat / FieldStringQuoted / Boolean
+
+FieldInteger
+  = Integer "i"
+
+FieldFloat
+  = Scientific / Number
+
+FieldStringQuoted
+ = '"' FieldString '"'
+
+FieldString
+  = FieldStringChar*
+
+FieldStringChar
+  = FieldStringSourceChar / Escape FieldStringEscapes
+
+FieldStringSourceChar
+  = [^\\"]
+
+FieldStringEscapes
+  = [\\"]
+
+Scientific
+  = Number "e"i ( "+" / "-" )? Digit+
+
+Number
+  = '-'? Integer ( '.' Digit* )?
+
+Integer
+  = '-'? ('0' / ( NonZeroDigit Digit* ))
+
+Boolean
+  = True / False
+
+True
+  = "TRUE" / "True" / "T" / "true" / "t"
+
+False
+  = "FALSE" / "False" / "F" / "false" / "f"
+
+TimeStamp
+  = __ tm:UnixNano
+
+UnixNano
+  = Digit+
+
+NonZeroDigit
+  = [1-9]
+
+Digit
+  = [0-9]
+
+SourceChar
+  = .
+
+Escape
+  = "\\"
+
+__
+  = ws*
+
+ws
+  = [\t ]
+
+EOL
+  = [\r\n]
+
+EOF
+  = !.
+
